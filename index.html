@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한글 배우기 - 문장 만들기 게임</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .score {
+            font-size: 1.5em;
+            color: #764ba2;
+            font-weight: bold;
+        }
+
+        .game-area {
+            margin-bottom: 30px;
+        }
+
+        .image-container {
+            text-align: center;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 20px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-image {
+            font-size: 150px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .sentence-target {
+            background: #e3f2fd;
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 80px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 1.3em;
+            color: #666;
+        }
+
+        .sentence-target.has-words {
+            color: #333;
+            font-weight: bold;
+        }
+
+        .words-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            min-height: 100px;
+        }
+
+        .word-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 30px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+
+        .word-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .word-btn:active {
+            transform: scale(0.95);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+
+        .btn-check {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-check:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .btn-reset {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #e68900;
+            transform: scale(1.05);
+        }
+
+        .btn-next {
+            background: #2196f3;
+            color: white;
+        }
+
+        .btn-next:hover {
+            background: #0b7dda;
+            transform: scale(1.05);
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 2em;
+            font-weight: bold;
+            margin-top: 20px;
+            min-height: 50px;
+        }
+
+        .feedback.correct {
+            color: #4caf50;
+            animation: celebrate 0.5s;
+        }
+
+        .feedback.incorrect {
+            color: #f44336;
+            animation: shake 0.5s;
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .progress {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌟 한글 배우기 🌟</h1>
+            <div class="score">점수: <span id="score">0</span>점</div>
+        </div>
+
+        <div class="progress">
+            문제 <span id="current">1</span> / <span id="total">5</span>
+        </div>
+
+        <div class="game-area">
+            <div class="image-container">
+                <div class="game-image" id="gameImage">🐱</div>
+            </div>
+
+            <div class="sentence-target" id="sentenceTarget">
+                여기에 단어를 순서대로 놓아주세요
+            </div>
+
+            <div class="words-container" id="wordsContainer">
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-reset" onclick="resetSentence()">다시 하기</button>
+            <button class="btn btn-check" onclick="checkAnswer()">정답 확인</button>
+            <button class="btn btn-next hidden" id="nextBtn" onclick="nextQuestion()">다음 문제</button>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <script>
+        // 학습 데이터
+        const questions = [
+            {
+                image: '🐱',
+                sentence: ['고양이가', '밥을', '먹어요'],
+                correctOrder: ['고양이가', '밥을', '먹어요']
+            },
+            {
+                image: '🌞',
+                sentence: ['해가', '하늘에', '떠요'],
+                correctOrder: ['해가', '하늘에', '떠요']
+            },
+            {
+                image: '🌸',
+                sentence: ['꽃이', '예쁘게', '피었어요'],
+                correctOrder: ['꽃이', '예쁘게', '피었어요']
+            },
+            {
+                image: '🚗',
+                sentence: ['자동차가', '빨리', '달려요'],
+                correctOrder: ['자동차가', '빨리', '달려요']
+            },
+            {
+                image: '🎈',
+                sentence: ['풍선이', '하늘로', '날아가요'],
+                correctOrder: ['풍선이', '하늘로', '날아가요']
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedWords = [];
+
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        function loadQuestion() {
+            const question = questions[currentQuestion];
+
+            // 이미지 업데이트
+            document.getElementById('gameImage').textContent = question.image;
+
+            // 문장 타겟 초기화
+            const target = document.getElementById('sentenceTarget');
+            target.textContent = '여기에 단어를 순서대로 놓아주세요';
+            target.classList.remove('has-words');
+
+            // 단어 섞어서 표시
+            const shuffled = shuffleArray(question.sentence);
+            const container = document.getElementById('wordsContainer');
+            container.innerHTML = '';
+
+            shuffled.forEach((word, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'word-btn';
+                btn.textContent = word;
+                btn.onclick = () => selectWord(word, btn);
+                container.appendChild(btn);
+            });
+
+            // 진행 상황 업데이트
+            document.getElementById('current').textContent = currentQuestion + 1;
+            document.getElementById('total').textContent = questions.length;
+
+            // 피드백 초기화
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+
+            // 버튼 상태
+            document.getElementById('nextBtn').classList.add('hidden');
+
+            selectedWords = [];
+        }
+
+        function selectWord(word, btn) {
+            selectedWords.push(word);
+            btn.style.display = 'none';
+
+            const target = document.getElementById('sentenceTarget');
+            target.textContent = selectedWords.join(' ');
+            target.classList.add('has-words');
+        }
+
+        function resetSentence() {
+            selectedWords = [];
+            const target = document.getElementById('sentenceTarget');
+            target.textContent = '여기에 단어를 순서대로 놓아주세요';
+            target.classList.remove('has-words');
+
+            const buttons = document.querySelectorAll('.word-btn');
+            buttons.forEach(btn => {
+                btn.style.display = 'inline-block';
+            });
+
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+        }
+
+        function checkAnswer() {
+            const question = questions[currentQuestion];
+            const feedback = document.getElementById('feedback');
+
+            if (selectedWords.length === 0) {
+                feedback.textContent = '단어를 선택해주세요!';
+                feedback.className = 'feedback';
+                return;
+            }
+
+            const isCorrect = JSON.stringify(selectedWords) === JSON.stringify(question.correctOrder);
+
+            if (isCorrect) {
+                feedback.textContent = '🎉 정답이에요! 잘했어요!';
+                feedback.className = 'feedback correct';
+                score += 100;
+                document.getElementById('score').textContent = score;
+                document.getElementById('nextBtn').classList.remove('hidden');
+
+                // 버튼 비활성화
+                const buttons = document.querySelectorAll('.word-btn');
+                buttons.forEach(btn => {
+                    btn.onclick = null;
+                    btn.style.cursor = 'default';
+                });
+            } else {
+                feedback.textContent = '❌ 다시 한번 생각해볼까요?';
+                feedback.className = 'feedback incorrect';
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+
+            if (currentQuestion >= questions.length) {
+                showComplete();
+            } else {
+                loadQuestion();
+            }
+        }
+
+        function showComplete() {
+            const container = document.querySelector('.container');
+            container.innerHTML = `
+                <div class="header">
+                    <h1>🎊 축하해요! 🎊</h1>
+                    <div style="font-size: 2em; margin: 30px 0;">
+                        최종 점수: ${score}점
+                    </div>
+                    <div style="font-size: 1.5em; margin: 20px 0; color: #666;">
+                        모든 문제를 완료했어요!
+                    </div>
+                    <button class="btn btn-check" onclick="location.reload()" style="margin-top: 30px; font-size: 1.5em; padding: 20px 50px;">
+                        다시 시작하기
+                    </button>
+                </div>
+            `;
+        }
+
+        // 게임 시작
+        loadQuestion();
+    </script>
+</body>
+</html>
